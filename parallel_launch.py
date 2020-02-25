@@ -9,6 +9,9 @@ def send_to_lua(args, l_script='grating.lua'):
 
 wavelengths = np.arange(600,700,1)
 
+# Number of harmonics
+n_harm = 11
+
 # Geometrical parameters
 a = 450            # Period
 radius = 75        # Radius
@@ -25,7 +28,7 @@ eps_plot = 0		# 0 false, 1 = true
 all_field_plot = 0	# 0 false, 1 = true
 
 # Create a list of parameters to simulate
-args = [f"\"lambda={wl}; a={a}; radius={radius}; t_grating={t_grating};\
+args = [f"\"lambda={wl}; a={a}; radius={radius}; t_grating={t_grating}; n_harm={n_harm}; \
 	RI_cover={RI_cover}; RI_grating={RI_grating}; RI_substrate={RI_substrate}\""
 	for wl in wavelengths]
 

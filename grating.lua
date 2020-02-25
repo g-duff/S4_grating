@@ -3,6 +3,7 @@ S = S4.NewSimulation()
 -- Load parameters: 
 pcall(loadstring(S4.arg))
 -- lambda
+-- n_harm
 -- a
 -- radius
 -- t_grating
@@ -12,7 +13,7 @@ pcall(loadstring(S4.arg))
 
 -- 1D simulation for now
 S:SetLattice({a, 0}, {0, 0})
-S:SetNumG(11)
+S:SetNumG(n_harm)
 
 -- !! Convention !!
 -- Materials have upper case names.
