@@ -3,7 +3,7 @@ import numpy as np
 import subprocess as sp
 from multiprocessing import Pool
 
-def send_to_lua(args, l_script='grating.lua'):
+def send_to_lua(args, l_script='py_grating.lua'):
 	output = sp.check_output(f'S4 -a {args} {l_script}', shell=True).decode().split('\t')
 	return np.asarray(output, dtype=float)
 
@@ -34,8 +34,6 @@ args = [f"\"lambda={wl}; a={a}; radius={radius}; t_grating={t_grating}; n_harm={
 
 # Send the parameters to S4
 spectrum = [send_to_lua(arg) for arg in args]
-
-for s in spectrum: print(s)
 
 # Save the output spectrum
 specname = "spectrum.txt"

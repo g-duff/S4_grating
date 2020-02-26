@@ -1,19 +1,15 @@
 S = S4.NewSimulation()
 
--- Define parameters
-
--- Number of harmonics
-n_harm = 11
-
--- Geometrical parameters
-a = 450            -- Period
-radius = 75        -- Radius
-t_grating = 150    -- Grating thickness 
-
--- Material parameters
-RI_cover = 1.33
-RI_grating = 2.0
-RI_substrate = 1.45
+-- Load parameters: 
+pcall(loadstring(S4.arg))
+-- lambda
+-- n_harm
+-- a
+-- radius
+-- t_grating
+-- RI_cover
+-- RI_grating
+-- RI_substrate
 
 -- 1D simulation for now
 S:SetLattice({a, 0}, {0, 0})
@@ -50,21 +46,11 @@ S:SetExcitationPlanewave(
     {1, 0}  -- p-polarization
 )
 
-outfile = io.open('spectrum.txt', 'w')
-
--- Write header
-outfile:write('wav\tinc\t\t\t\t\ttrn\t\t\t\t\tref\n')
-
 -- Scan wavelength
-for lambda = 600,700,1 do
-	freq = 1/lambda
-	S:SetFrequency(freq)
 
-	transmission = S:GetPowerFlux('substrate')
-	inc, reflection = S:GetPowerFlux('cover')
+freq = 1/lambda
+S:SetFrequency(freq)
 
-	-- Save to file
-	outfile:write(lambda, '\t', inc, '\t', transmission, '\t', -reflection, '\n')
-end
-
-outfile:close()
+transmission = S:GetPowerFlux('substrate')
+inc, reflection = S:GetPowerFlux('cover')
+print(lambda, inc, transmission, -reflection)

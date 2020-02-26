@@ -3,7 +3,7 @@ import numpy as np
 import subprocess as sp
 from multiprocessing import Pool
 
-def send_to_lua(args, l_script='grating.lua'):
+def send_to_lua(args, l_script='py_grating.lua'):
 	output = sp.check_output(f'S4 -a {args} {l_script}', shell=True).decode().split('\t')
 	return np.asarray(output, dtype=float)
 
