@@ -1,16 +1,18 @@
 #!/usr/bin/python3
 import numpy as np
+from scipy import interpolate as interp
 import subprocess as sp
 from multiprocessing import Pool
 
-def send_to_lua(args, l_script='py_grating.lua'):
+def send_to_lua(args, l_script='./advanced/py_grating.lua'):
 	output = sp.check_output(f'S4 -a {args} {l_script}', shell=True).decode().split('\t')
 	return np.asarray(output, dtype=float)
 
-wavelengths = np.arange(600,700,1)
-
-# Number of harmonics
+# Select output
 n_harm = 11
+wavs = np.arange(600,700,1)
+eps_plot = 0		# 0 false, 1 = true
+all_field_plot = 0	# 0 false, 1 = true
 
 # Geometrical parameters
 a = 450            # Period
@@ -19,19 +21,22 @@ t_grating = 150    # Grating thickness
 
 # Material parameters
 RI_cover = 1.33
-RI_grating = 2.0
 RI_substrate = 1.45
+# RI_grating = interpolated values below:
 
-# Select output
-eps_plot = 0		# 0 false, 1 = true
-all_field_plot = 0	# 0 false, 1 = true
+# Interpolate silicon nitride dispersion with a cubic spline
+# Downloaded from refractiveindex.info
+material_wavs, material_n = np.loadtxt('./advanced/SiN.csv',
+	delimiter=',', unpack=True, skiprows=1)
+cubic_spline = interp.splrep(material_wavs*1000, material_n)
+RI_grating = interp.splev(wavs, cubic_spline)
 
 # Create a list of parameters to simulate
-args = [f"\"lambda={wl}; a={a}; radius={radius}; t_grating={t_grating}; \
-	n_harm={n_harm}; RI_cover={RI_cover}; RI_grating={RI_grating}; \
-	RI_substrate={RI_substrate}; eps_plot={eps_plot}; \
-	all_field_plot={all_field_plot}\""
-	for wl in wavelengths]
+args = [f"\"lambda={wl}; a={a}; radius={radius}; t_grating={t_grating}; "+\
+	f"n_harm={n_harm}; RI_cover={RI_cover}; RI_grating={ri_grating}; "+\
+	f"RI_substrate={RI_substrate}; eps_plot={eps_plot}; "+\
+	f"all_field_plot={all_field_plot}\""
+	for wl, ri_grating in zip(wavs, RI_grating)]
 
 # Send the parameters to S4
 spectrum = [send_to_lua(arg) for arg in args]
