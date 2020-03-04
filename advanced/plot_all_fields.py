@@ -6,24 +6,14 @@ Exr, Exi, Eyr, Eyi, Ezr, Ezi = np.loadtxt('fields.E', usecols=(3,4,5,6,7,8), unp
 Hxr, Hxi, Hyr, Hyi, Hzr, Hzi = np.loadtxt('fields.H', usecols=(3,4,5,6,7,8), unpack=True)
 
 eps = np.loadtxt('epsilon.txt')
+field_list = ((Exr, Exi), (Eyr, Eyi), (Ezr, Ezi),
+              (Hxr, Hxi), (Hyr, Hyi), (Hzr, Hzi))
 
-## Calculate components
-Ex = np.sqrt(np.add(Exr**2, Exi**2))
-Ey = np.sqrt(np.add(Eyr**2, Eyi**2))
-Ez = np.sqrt(np.add(Ezr**2, Ezi**2))
-
-Ex = np.reshape(Ex, (451, 450)) ## (period+1, period)
-Ey = np.reshape(Ey, (451, 450))
-Ez = np.reshape(Ez, (451, 450))
-
-Hx = np.sqrt(np.add(Hxr**2, Hxi**2))
-Hy = np.sqrt(np.add(Hyr**2, Hyi**2))
-Hz = np.sqrt(np.add(Hzr**2, Hzi**2))
-
-Hx = np.reshape(Hx, (451, 450))
-Hy = np.reshape(Hy, (451, 450))
-Hz = np.reshape(Hz, (451, 450))
-
+[Ex, Ey, Ez, Hx, Hy, Hz] = (np.sqrt(np.add(real**2, imag**2))
+                            for real, imag in field_list)
+[Ex, Ey, Ez, Hx, Hy, Hz] = (np.reshape(F, (451, 450))
+                            for F in (Ex, Ey, Ez, Hx, Hy, Hz))
+                            
 Efields = [Ex, Ey, Ez]
 Efield_names = ["$E_x$", "$E_y$", "$E_z$"]
 
