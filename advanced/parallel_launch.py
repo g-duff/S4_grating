@@ -4,39 +4,39 @@ from scipy import interpolate as interp
 import subprocess as sp
 from multiprocessing import Pool
 
-def send_to_lua(args, l_script='./advanced/py_grating.lua'):
-	output = sp.check_output(f'S4 -a {args} {l_script}', shell=True).decode().split('\t')
+def send_to_lua(args, l_script='./py_grating.lua'):
+	output = sp.check_output(f'S4 -a \"{args}\" {l_script}', shell=True).decode().split('\t')
 	return np.asarray(output, dtype=float)
 
-# Select output
-n_harm = 11
-wavs = np.arange(600,700,1)
-eps_plot = 0		# 0 false, 1 = true
-all_field_plot = 0	# 0 false, 1 = true
+def dict_to_args(indict, newitems={}):
+	'''Returns dictionary keys and values as formatted parameters for S4'''
+	params = (f'{key}={item}; ' for key, item in {**indict, **newitems}.items())
+	return ' '.join(params)
 
 # Geometrical parameters
-a = 450            # Period
-radius = 75        # Radius
-t_grating = 150    # Grating thickness 
-
-# Material parameters
-RI_cover = 1.33
-RI_substrate = 1.45
-# RI_grating = interpolated values below:
+default_parameters = {
+	"n_harm":11, 
+	"lambda":600, 
+	"a":450, 
+	"radius":75, 
+	"t_grating":150,
+	"RI_cover":1.33, 
+	"RI_grating":2.0,
+	"RI_substrate":1.45,
+	"eps_plot":0,
+	"all_field_plot":0}
 
 # Interpolate silicon nitride dispersion with a cubic spline
 # Downloaded from refractiveindex.info
-material_wavs, material_n = np.loadtxt('./advanced/SiN.csv',
+wavs = np.arange(600,700,1)
+material_wavs, material_n = np.loadtxt('./SiN.csv',
 	delimiter=',', unpack=True, skiprows=1)
 cubic_spline = interp.splrep(material_wavs*1000, material_n)
 RI_grating = interp.splev(wavs, cubic_spline)
 
 # Create a list of parameters to simulate
-args = [f"\"lambda={wl}; a={a}; radius={radius}; t_grating={t_grating}; "+\
-	f"n_harm={n_harm}; RI_cover={RI_cover}; RI_grating={ri_grating}; "+\
-	f"RI_substrate={RI_substrate}; eps_plot={eps_plot}; "+\
-	f"all_field_plot={all_field_plot}\""
-	for wl, ri_grating in zip(wavs, RI_grating)]
+updated_parameters = ({"lambda": wl, "RI_grating": rig} for wl, rig in zip(wavs, RI_grating))
+args = [dict_to_args(default_parameters, u) for u in updated_parameters]
 
 with Pool(processes=3) as pool:
 	spectrum = pool.map(send_to_lua, args)
